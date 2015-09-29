@@ -5,7 +5,7 @@
 \title{Update a Published Web Service}
 \usage{
 updateWebService(functionName, serviceName, wsID, inputSchema, outputSchema,
-  wkID, authToken)
+  wkID, authToken, url = publishURL)
 }
 \arguments{
 \item{functionName}{function name as a string to be published}
@@ -21,6 +21,8 @@ updateWebService(functionName, serviceName, wsID, inputSchema, outputSchema,
 \item{wkID}{the workspace ID}
 
 \item{authToken}{primary authorization token}
+
+\item{url}{location dependent web service management path that defaults to the US South Central url}
 }
 \value{
 List of webservice details, default endpoint details, and the consumption function

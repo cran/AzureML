@@ -5,7 +5,7 @@
 \title{Publish a function to Microsoft Azure}
 \usage{
 publishWebService(functionName, serviceName, inputSchema, outputSchema, wkID,
-  authToken)
+  authToken, url = publishURL)
 }
 \arguments{
 \item{functionName}{function name as a string to be published}
@@ -19,6 +19,8 @@ publishWebService(functionName, serviceName, inputSchema, outputSchema, wkID,
 \item{wkID}{the workspace ID}
 
 \item{authToken}{primary authorization token}
+
+\item{url}{location dependent web service management path that defaults to the US South Central url}
 }
 \value{
 nested list, the first element is a list containing information about the new web service, the second element is a list of its endpoints
@@ -30,7 +32,7 @@ Publish a function to Microsoft Azure Machine Learning as a web service. The web
 \dontrun{
 add <- function(x,y) { return(x+y) }
 newService <- publishWebService("add", "add",
- list("x"="int","y"="int"), list("z"="int"), wsID, authToken)
+ list("x"="int","y"="int"), list("z"="int"), wsID, authToken, url)
 webserviceDetails <- newService[[1]]
 endpoints <- newService[[2]]
 helpURL <- endpoints[[1]]$HelpLocation

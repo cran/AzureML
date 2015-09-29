@@ -299,6 +299,7 @@ publishPreprocess <- function(argList) {
 #' @param outputSchema list of outputs of format \code{list("output1"="type", "output2"="type", ...)}
 #' @param wkID the workspace ID
 #' @param authToken primary authorization token
+#' @param url location dependent web service management path that defaults to the US South Central url   
 #' @return nested list, the first element is a list containing information about the new web service, the second element is a list of its endpoints
 #'
 #' @seealso \code{\link{getWSDetails}} \code{\link{getEndpoints}} \code{\link{discoverSchema}} \code{\link{consumeLists}}
@@ -308,14 +309,14 @@ publishPreprocess <- function(argList) {
 #' \dontrun{
 #' add <- function(x,y) { return(x+y) }
 #' newService <- publishWebService("add", "add",
-#'  list("x"="int","y"="int"), list("z"="int"), wsID, authToken)
+#'  list("x"="int","y"="int"), list("z"="int"), wsID, authToken, url)
 #' webserviceDetails <- newService[[1]]
 #' endpoints <- newService[[2]]
 #' helpURL <- endpoints[[1]]$HelpLocation
 #' pKey <- endpoints[[1]]$PrimaryKey
 #' apiURL <- endpoints[[1]]$ApiLocation
 #' }
-publishWebService <- function(functionName, serviceName, inputSchema, outputSchema, wkID, authToken) {
+publishWebService <- function(functionName, serviceName, inputSchema, outputSchema, wkID, authToken, url=publishURL) {
 
   # Make sure schema inputted matches function signature
   if (length(formals(functionName)) != length(inputSchema)) {
@@ -412,7 +413,7 @@ publishWebService <- function(functionName, serviceName, inputSchema, outputSche
 #' addService <- updateWebService("add2", "add2", addService[[1]]$Id,
 #'  list("x"="int"), list("z"="int"), wsID, wsAuth)
 #' }
-updateWebService <- function(functionName, serviceName, wsID, inputSchema, outputSchema, wkID, authToken) {
+updateWebService <- function(functionName, serviceName, wsID, inputSchema, outputSchema, wkID, authToken, url=publishURL) {
 
   # Make sure schema inputted matches function signature
   if (length(formals(functionName)) != length(inputSchema)) {
