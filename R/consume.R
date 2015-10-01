@@ -19,6 +19,15 @@
 #' wsSchema <- discoverSchema(endpoints[[1]]$HelpLocation)
 #' }
 discoverSchema <- function(helpURL, scheme = "https", host = "ussouthcentral.services.azureml.net", api_version = "2.0") {
+  
+  if(!hasArg('host')){
+    if(length(wsSettings)){
+      region <- wsSettings[['region']]
+      if(region!='ussouthcentral')
+        host <- paste0(region,".services.azureml.net")
+    }
+  }
+  
   endpointId = getDetailsFromUrl(helpURL)[[1]]
   workspaceId = getDetailsFromUrl(helpURL)[[2]]
   # Construct swagger document URL using parameters
@@ -38,6 +47,8 @@ discoverSchema <- function(helpURL, scheme = "https", host = "ussouthcentral.ser
 
   #Accesses a single specific JSON object and formats it to be a request inputted as a list in R
   inputExample = as.list((jsonlite::fromJSON((exampleJson)))$Inputs$input1)
+  print("Example doc:")
+  print((jsonlite::fromJSON((exampleJson))))
 
   for(i in 1:length(inputExample)) {
     if(typeof(inputExample[[i]]) == "character") {
