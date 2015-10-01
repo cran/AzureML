@@ -18,8 +18,7 @@ wsSettings <- list()
 loadSettings <- function(){
   err <- tryCatch(
     {
-      #settings <- raster::readIniFile("azureml/settings.ini", token='=', aslist=TRUE)[[1]]
-      settings <- list()
+      settings <- raster::readIniFile("azureml/settings.ini", token='=', aslist=TRUE)[[1]]
     },
     error = function(e){
       return()
