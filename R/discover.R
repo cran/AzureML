@@ -73,10 +73,19 @@ getFramework <- function(tUrl, authToken) {
 #'
 #' @examples
 #' \dontrun{
-#' services = getWebServices("wsID", "authToken")
-#' serviceID = services[[1]]["Id"]
+#' services <- getWebServices(wkID, authToken, url)
+#' serviceID <- services[[1]]["Id"]
+#' 
+#' 
+#' # If the workspace was configured through loadSettings()
+#' loadSettings()
+#' services <- getWebServices()
 #' }
 getWebServices <- function(wkID, authToken, url=prodURL) {
+  
+  # If user has omitted the workspace id or the authorization token, use the values from the config file
+  eval(parse(text=expToEvaluate("'management.azureml.net'")))
+  
   response = getFramework(sprintf(paste(url,"/workspaces/%s/webservices",sep=""), wkID), authToken)
   if (!is.list(response)) {
     stop("No web services found", call. = TRUE)
@@ -108,7 +117,19 @@ getWebServices <- function(wkID, authToken, url=prodURL) {
 #'
 #' @seealso \code{\link{publishWebService}} \code{\link{consumeLists}}
 #' @family discovery functions
+#' 
+#' @examples
+#' \dontrun{
+#' wsDetails <- getWebServices(wkID, authToken, wsID, url)
+#' 
+#' # If the workspace was configured through loadSettings()
+#' services <- getWebServices(wsID=myWsId)
+#' }
 getWSDetails <- function(wkID, authToken, wsID, url=prodURL) {
+  
+  # If user has omitted the workspace id or the authorization token, use the values from the config file
+  eval(parse(text=expToEvaluate("'management.azureml.net'")))
+  
   return(getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s", sep=""), wkID, wsID), authToken))
 }
 
@@ -150,8 +171,15 @@ getWSDetails <- function(wkID, authToken, wsID, url=prodURL) {
 #' helpURL <- endpoints[[1]]$HelpLocation
 #' pKey <- endpoints[[1]]$PrimaryKey
 #' apiURL <- endpoints[[1]]$ApiLocation
+#' 
+#' # If the workspace was configured through loadSettings()
+#' endpoints <- getEndpoints(wsID=myWsId)
 #' }
 getEndpoints <- function(wkID, authToken, wsID, url=prodURL) {
+  
+  # If user has omitted the workspace id or the authorization token, use the values from the config file
+  eval(parse(text=expToEvaluate("'management.azureml.net'")))
+  
   response <- getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints", sep=""), wkID, wsID), authToken)
   # for convenience because by default the repsonse doesn't include the full API location
   for (i in 1:length(response)) {
@@ -192,6 +220,10 @@ getEndpoints <- function(wkID, authToken, wsID, url=prodURL) {
 #' @seealso \code{\link{publishWebService}} \code{\link{consumeLists}}
 #' @family discovery functions
 getEPDetails <- function(wkID, authToken, wsID, epName, url=prodURL) {
+  
+  # If user has omitted the workspace id or the authorization token, use the values from the config file
+  eval(parse(text=expToEvaluate("'management.azureml.net'")))
+  
   sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints/%s", sep=""), wkID, wsID, epName)
   endpoint <- getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints/%s", sep=""), wkID, wsID, epName), authToken)
   # for convenience because by default the repsonse doesn't include the full API location

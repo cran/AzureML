@@ -30,8 +30,13 @@ Get a list of webservices available to the Microsoft Azure Machine Learning work
 }
 \examples{
 \dontrun{
-services = getWebServices("wsID", "authToken")
-serviceID = services[[1]]["Id"]
+services <- getWebServices(wkID, authToken, url)
+serviceID <- services[[1]]["Id"]
+
+
+# If the workspace was configured through loadSettings()
+loadSettings()
+services <- getWebServices()
 }
 }
 \seealso{

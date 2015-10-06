@@ -44,6 +44,9 @@ endpoints <- getEndpoints("wkId", "authToken", "wsID")
 helpURL <- endpoints[[1]]$HelpLocation
 pKey <- endpoints[[1]]$PrimaryKey
 apiURL <- endpoints[[1]]$ApiLocation
+
+# If the workspace was configured through loadSettings()
+endpoints <- getEndpoints(wsID=myWsId)
 }
 }
 \seealso{

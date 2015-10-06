@@ -35,7 +35,7 @@ add <- function(x,y) {
 We want to publish this as a web service. We can do by calling the function publishWebService():
 ```{r publish, eval=FALSE}
 response <- publishWebService("add", "addOnline", 
-                              list("x"="float", "y"="float"), list("z"="float"), myWsID, myAuth)
+                              list("x"="float", "y"="float"), list("z"="float"), myWsID, myAuth, [url])
 ```
 
 We will describe the parameters.
@@ -52,7 +52,22 @@ We will describe the parameters.
     - int
     - bool
   
-- Last, we pass in our authorization credentials that we had stored previously
+- Last, we pass in our authorization credentials that we had stored previously.
+- If the workspace location is not the default one (South Central US), we also pass the Azure ML web service management url. The url is of the form "https://[region].management.azureml.net", where the region is 'ussouthcentral' for South Central US, 'europewest' for West Europe, and 'asiasoutheast' for Southeast Asia.
+
+Alternatively, to avoid passing the workspace ID, the authorization token and the url to each function, we can define the workspace settings in a file ~azureml/settings.ini as illustrated the example below.
+<img src="settings.png" width="60%">
+
+Next, call the function loadSettings()
+```{r load, eval=FALSE}
+loadSettings()
+```
+to load the workspace parameters into the R environment. Then the workspace ID, authorization token and url can be omitted in function calls. For example, the function publishWebService() can now be called as:
+```{r publishAfterLoad, eval=FALSE}
+response <- publishWebService("add", "addOnline", 
+                              list("x"="float", "y"="float"), list("z"="float"))
+```
+
 
 publishWebService() will return a list containing two elements. The first is a list containing the details of the newly created web service, the second is a list of the endpoints of the web service. From here, you can pass the information on to another user, or use the information to use the web service from R:
 
@@ -75,11 +90,16 @@ helpPageUrl <- endpoints[[1]]$HelpLocation
 Once published, a web service can be updated using the updateWebService() function:
 
 ```{r update, eval=FALSE}
-add1 <- function(x) {
+add0 <- function(x) {
   return(x)
 }
-response <- updateWebService("add1", "addOnline", webservice$Id,
+response <- updateWebService("add0", "addOnline", webservice$Id,
                               list("x"="float"), list("z"="float"), myWsID, myAuth)
+
+# If the workspace was configured through loadSettings()
+response <- updateWebService("add0", "addOnline", webservice$Id,
+                              list("x"="float"), list("z"="float"))
+
 ```
 
 ## Discovering Web Service
@@ -88,12 +108,18 @@ The discovery functionality in this package allows users to explore and obtain t
 
 ```{r webservice, eval=FALSE}
 webservices <- getWebServices(myWsId, myAuth)
+
+# If the workspace was configured through loadSettings()
+webservices <- getWebServices()
 ```
 
 Then, the web service ID can be used in conjunction with the authorization credentials to obtain a list of endpoints:
 
 ```{r endpoints, eval=FALSE}
 endpoints <- getEndpoints(myWsId, myAuth, webservices[[1]]$Id)
+
+# If the workspace was configured through loadSettings()
+endpoints <- getEndpoints(wsID = webservices[[1]]$Id)
 ```
 
 From here, the user has all the information needed to consume any web service from any of its endpoints, as described next.

@@ -13,7 +13,7 @@ Description: Provides an interface with Microsoft Azure to easily publish functi
 License: MIT + file LICENSE
 Copyright: Microsoft Corporation
 LazyData: TRUE
-Imports: RCurl, uuid, codetools, base64enc, df2json, jsonlite, rjson
+Imports: RCurl, uuid, codetools, base64enc, df2json, jsonlite, rjson, raster
 Suggests: testthat, knitr
 VignetteBuilder: knitr
 NeedsCompilation: no

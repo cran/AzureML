@@ -30,6 +30,14 @@ Returns a list with the following fields:
 \description{
 Get detailed information about a specific Microsoft Azure Machine Learning web service specified by the Azure ML web service ID.
 }
+\examples{
+\dontrun{
+wsDetails <- getWebServices(wkID, authToken, wsID, url)
+
+# If the workspace was configured through loadSettings()
+services <- getWebServices(wsID=myWsId)
+}
+}
 \seealso{
 \code{\link{publishWebService}} \code{\link{consumeLists}}
 

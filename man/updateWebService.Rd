@@ -5,7 +5,7 @@
 \title{Update a Published Web Service}
 \usage{
 updateWebService(functionName, serviceName, wsID, inputSchema, outputSchema,
-  wkID, authToken)
+  wkID, authToken, url = publishURL)
 }
 \arguments{
 \item{functionName}{function name as a string to be published}
@@ -21,6 +21,8 @@ updateWebService(functionName, serviceName, wsID, inputSchema, outputSchema,
 \item{wkID}{the workspace ID}
 
 \item{authToken}{primary authorization token}
+
+\item{url}{location dependent web service management path that defaults to the US South Central url}
 }
 \value{
 List of webservice details, default endpoint details, and the consumption function
@@ -32,11 +34,16 @@ Update a web service, i.e. change the underlying R code that the service will ru
 \dontrun{
 add1 <- function(x) { return(x+1) }
 addService <- publishWebService("add1", "add1",
- list("x"="int"), list("z"="int"), wsID, wsAuth)
+ list("x"="int"), list("z"="int"), wsID, wsAuth, url)
 
 add2 <- function(x) { return(x+2) }
 addService <- updateWebService("add2", "add2", addService[[1]]$Id,
- list("x"="int"), list("z"="int"), wsID, wsAuth)
+ list("x"="int"), list("z"="int"), wsID, wsAuth, url)
+
+# If the workspace was configured through loadSettings()
+loadSettings()
+addService <- updateWebService("add2", "add2", addService[[1]]$Id,
+list("x"="int"), list("z"="int"))
 }
 }
 \seealso{
