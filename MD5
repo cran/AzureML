@@ -1,11 +1,11 @@
-38b57a6c6ec7e993646d9fd1e1ecb122 *DESCRIPTION
+13d2c6a1b4cfc0bf409fc25572e19ea7 *DESCRIPTION
 0875879c5588b0515fb7f01beacbade5 *LICENSE
 84a64b8bd0db96093a6c0dbda3098f91 *NAMESPACE
 d412a835ce8e17ed818d4aafcd49fb25 *R/AzureML-package.R
 45e22897fa4a6776f6dbb4372d1b3894 *R/consume.R
 01d3eb07b4d95a1e28f4ad21a35ca909 *R/discover.R
 669fc5701acdc7229dc4778a80868ce3 *R/publish.R
-4a2fa7b375bd1488770f30f3ae9a4d56 *build/vignette.rds
+21096a51e98fd6aa68dbb9850fd61343 *build/vignette.rds
 0aad3368c5caaf4e4f8ba74ce82d6262 *inst/doc/AzureML.R
 a080e869a5848d1dfa472f776bafeb41 *inst/doc/AzureML.Rmd
 55cca687c9aa68904fd3b717eae6b537 *inst/doc/AzureML.html
@@ -32,7 +32,7 @@ bb1634aa9abe5ac9a5daeb1fdadd67eb *man/publishWebService.Rd
 39e43162b5b4bdcb263a5e50347e4994 *tests/testthat/testConsume.R
 f5da112c8ee5f26b2b9514fb3470b46b *tests/testthat/testDiscover.R
 757af260bb73f8682e54a475b61dd4c0 *tests/testthat/testPublish.R
-55cca687c9aa68904fd3b717eae6b537 *vignettes/AzureML.Rmd
+a080e869a5848d1dfa472f776bafeb41 *vignettes/AzureML.Rmd
 8ffc079573d02d56b56253496f9791e5 *vignettes/authToken.png
 4abaa804b0e1d66652249faa77603f17 *vignettes/settings.png
 3091f61941d634f3e648c3ca310da292 *vignettes/workspaceID.png
