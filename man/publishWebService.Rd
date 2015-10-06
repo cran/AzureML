@@ -38,6 +38,11 @@ endpoints <- newService[[2]]
 helpURL <- endpoints[[1]]$HelpLocation
 pKey <- endpoints[[1]]$PrimaryKey
 apiURL <- endpoints[[1]]$ApiLocation
+
+# If the workspace was configured through loadSettings()
+loadSettings()
+newService <- publishWebService("add", "add",
+ list("x"="int","y"="int"), list("z"="int"))
 }
 }
 \seealso{

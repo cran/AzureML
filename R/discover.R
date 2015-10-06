@@ -76,6 +76,8 @@ getFramework <- function(tUrl, authToken) {
 #' services <- getWebServices(wkID, authToken, url)
 #' serviceID <- services[[1]]["Id"]
 #' 
+#' 
+#' # If the workspace was configured through loadSettings()
 #' loadSettings()
 #' services <- getWebServices()
 #' }
@@ -83,21 +85,6 @@ getWebServices <- function(wkID, authToken, url=prodURL) {
   
   # If user has omitted the workspace id or the authorization token, use the values from the config file
   eval(parse(text=expToEvaluate("'management.azureml.net'")))
-  
-  # Check if user has omitted the workspace id or the authorization token
-  if(!hasArg('wkID') || !hasArg('authToken')){
-    # If user has loaded the workspace settings, use those for the missing parameters.
-    if(length(wsSettings)){
-      # Assign the workspace id value
-      wkID <- wsSettings[['wsId']]
-      # Assign the authorization token value
-      authToken <- wsSettings[['authToken']]
-      # Assign the url value 
-      region <- wsSettings[['region']]
-      if(region!='ussouthcentral')
-        url <- paste0("https://",region,".management.azureml.net")
-    }
-  }
   
   response = getFramework(sprintf(paste(url,"/workspaces/%s/webservices",sep=""), wkID), authToken)
   if (!is.list(response)) {
@@ -142,21 +129,6 @@ getWSDetails <- function(wkID, authToken, wsID, url=prodURL) {
   
   # If user has omitted the workspace id or the authorization token, use the values from the config file
   eval(parse(text=expToEvaluate("'management.azureml.net'")))
-  
-  # Check if user has omitted the workspace id or the authorization token
-  if(!hasArg('wkID') || !hasArg('authToken')){
-    # If user has loaded the workspace settings, use those for the missing parameters.
-    if(length(wsSettings)){
-      # Assign the workspace id value
-      wkID <- wsSettings[['wsId']]
-      # Assign the authorization token value
-      authToken <- wsSettings[['authToken']]
-      # Assign the url value 
-      region <- wsSettings[['region']]
-      if(region!='ussouthcentral')
-        url <- paste0("https://",region,".management.azureml.net")
-    }
-  }
   
   return(getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s", sep=""), wkID, wsID), authToken))
 }
@@ -208,21 +180,6 @@ getEndpoints <- function(wkID, authToken, wsID, url=prodURL) {
   # If user has omitted the workspace id or the authorization token, use the values from the config file
   eval(parse(text=expToEvaluate("'management.azureml.net'")))
   
-  # Check if user has omitted the workspace id or the authorization token
-  if(!hasArg('wkID') || !hasArg('authToken')){
-    # If user has loaded the workspace settings, use those for the missing parameters.
-    if(length(wsSettings)){
-      # Assign the workspace id value
-      wkID <- wsSettings[['wsId']]
-      # Assign the authorization token value
-      authToken <- wsSettings[['authToken']]
-      # Assign the url value 
-      region <- wsSettings[['region']]
-      if(region!='ussouthcentral')
-        url <- paste0("https://",region,".management.azureml.net")
-    }
-  }
-  
   response <- getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints", sep=""), wkID, wsID), authToken)
   # for convenience because by default the repsonse doesn't include the full API location
   for (i in 1:length(response)) {
@@ -266,21 +223,6 @@ getEPDetails <- function(wkID, authToken, wsID, epName, url=prodURL) {
   
   # If user has omitted the workspace id or the authorization token, use the values from the config file
   eval(parse(text=expToEvaluate("'management.azureml.net'")))
-  
-  # Check if user has omitted the workspace id or the authorization token
-  if(!hasArg('wkID') || !hasArg('authToken')){
-    # If user has loaded the workspace settings, use those for the missing parameters.
-    if(length(wsSettings)){
-      # Assign the workspace id value
-      wkID <- wsSettings[['wsId']]
-      # Assign the authorization token value
-      authToken <- wsSettings[['authToken']]
-      # Assign the url value 
-      region <- wsSettings[['region']]
-      if(region!='ussouthcentral')
-        url <- paste0("https://",region,".management.azureml.net")
-    }
-  }
   
   sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints/%s", sep=""), wkID, wsID, epName)
   endpoint <- getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints/%s", sep=""), wkID, wsID, epName), authToken)

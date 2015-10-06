@@ -21,8 +21,8 @@
 discoverSchema <- function(helpURL, scheme = "https", host = "ussouthcentral.services.azureml.net", api_version = "2.0") {
   
   if(!hasArg('host')){
-    if(length(wsSettings)){
-      region <- wsSettings[['region']]
+    if(length(cacheEnv$wsSettings)){
+      region <- cacheEnv$wsSettings[['region']]
       if(region!='ussouthcentral')
         host <- paste0(region,".services.azureml.net")
     }

@@ -17,6 +17,7 @@
 #' 1. Discovery
 #'
 #' \itemize{
+#'    \item Configure workspace settings: \code{\link{loadSettings}}
 #'    \item Get web services: \code{\link{getWebServices}}
 #'    \item Get web service details \code{\link{getWSDetails}}
 #'    \item Get endpoints: \code{\link{getEndpoints}}

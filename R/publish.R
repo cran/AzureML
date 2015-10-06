@@ -1,18 +1,36 @@
 # String constants --------------------------------------------------------
 
-publishURL <- "https://management.azureml.net/workspaces/%s/webservices/%s"
+publishURL <- "https://management.azureml.net"
 wrapper <- "inputDF <- maml.mapInputPort(1)\r\noutputDF <- matrix(ncol = %s, nrow = nrow(inputDF))\r\ncolnames(outputDF) <- list(%s)\r\noutputDF <- data.frame(outputDF)\r\nfor (file in list.files(\"src\")) {\r\n  if (file == \"%s\") {\r\n    load(\"src/%s\")\r\n    for (item in names(dependencies)) {\r\n      assign(item, dependencies[[item]])\r\n    }\r\n  }\r\n  else {\r\n    if (!(file %%in%% installed.packages()[,\"Package\"])) {\r\n      install.packages(paste(\"src\", file, sep=\"/\"), lib=\".\", repos=NULL, verbose=TRUE)\r\n    }\r\n    library(strsplit(file, \"\\\\.\")[[1]][[1]], character.only=TRUE)\r\n  }\r\n}\r\naction <- %s\r\nfor (i in 1:nrow(inputDF)) {\r\n  outputDF[i,] <- do.call(\"action\", as.list(inputDF[i,]))\r\n}\r\nmaml.mapOutputPort(\"outputDF\")"
 
 # Global variables --------------------------------------------------------
-wsSettings <- list()
+cacheEnv <- new.env()
+cacheEnv$wsSettings <- list()
 
 # Functions ---------------------------------------------------------------
 
-#' Loads workspace settings from the configuration file ~/azureml/settings.ini.
+#' Load workspace settings from ~/azureml/settings.ini.
 #'
-#' Helper function that sets the values of the workspace id, authorization token and region. The values are stored in the global variable 'wsSettings' and are used in any function call where the user omitted one (or more) of the 3 parameters. 
+#' Helper function that sets the values of the workspace id, authorization token and region. The values are stored internally and are used in any function call where the user omitted one (or more) of the 3 parameters. 
 #' 
 #' @export
+#' 
+#' @details This function allows the user to read the workspace settings from a configuration file 'settings.ini' placed in a folder 'azureml' in the working directory. The file must contain the following fields:
+#' \itemize{
+#' \item{wsId:}{ the workspace ID obtained from Azure ML Studio}
+#' \item{authToken:}{ primary authorization token}
+#' \item{region:}{ region where the workspace was created. 'ussouthcentral' for South Central US, 'europewest' for West Europe, and 'asiasoutheast' for Southeast Asia}
+#' }
+#' followed by the "=" token and their value. 
+#' 
+#' @examples
+#' \dontrun{
+#' #In file settings.ini
+#' [workspace]
+#' wsId=abcdefghijklmnopqrstuvwxyz1234567
+#' authToken=abcdefghijklmnopqrstuvwxyz1234567
+#' region=ussouthcentral
+#' }
 #' 
 #' @keywords internal
 loadSettings <- function(){
@@ -27,7 +45,7 @@ loadSettings <- function(){
   if(is.null(err)) stop("Invalid configuration file.")
   
   if(all(c('wsId', 'authToken', 'region') %in% names(settings)))
-    wsSettings <<- settings
+    cacheEnv$wsSettings <- settings
   else
     stop("The configuration file doesn't include all of the required fields.")
 }
@@ -48,17 +66,17 @@ expToEvaluate <- function(url){
   
   expText <- 
     "# Check if user has omitted the workspace id or the authorization token
-  if(!hasArg('wkID') || !hasArg('authToken')){
+  if(!hasArg('wkID') || !hasArg('authToken') || !hasArg('url')){
   # If user has loaded the workspace settings, use those for the missing parameters.
-  if(length(wsSettings)){
+  if(length(cacheEnv$wsSettings)){
   # Assign the workspace id value
-  wkID <- wsSettings[['wsId']]
+  wkID <- cacheEnv$wsSettings[['wsId']]
   # Assign the authorization token value
-  authToken <- wsSettings[['authToken']]
+  authToken <- cacheEnv$wsSettings[['authToken']]
   # Assign the url value 
-  region <- wsSettings[['region']]
+  region <- cacheEnv$wsSettings[['region']]
   if(region!='ussouthcentral')
-  url <- paste0('https://',region,'.',"
+    url <- paste0('https://',region,'.',"
   
   return(paste0(expText,url,")\n}\n}"))
   }
@@ -377,6 +395,7 @@ publishPreprocess <- function(argList) {
 #' pKey <- endpoints[[1]]$PrimaryKey
 #' apiURL <- endpoints[[1]]$ApiLocation
 #' 
+#' # If the workspace was configured through loadSettings()
 #' loadSettings()
 #' newService <- publishWebService("add", "add",
 #'  list("x"="int","y"="int"), list("z"="int"))
@@ -384,10 +403,10 @@ publishPreprocess <- function(argList) {
 publishWebService <- function(functionName, serviceName, inputSchema, outputSchema, wkID, authToken, url=publishURL) {
   
   # If user has omitted the workspace id or the authorization token, use the values from the config file
-  eval(parse(text=expToEvaluate("'management.azureml.net/workspaces/%s/webservices/%s'")))
+  eval(parse(text=expToEvaluate("'management.azureml.net'")))
   
   # Make sure schema inputted matches function signature
-  if (length(formals(functionName)) != length(inputSchema)) {
+  if (length(formals(globalenv()[[functionName]])) != length(inputSchema)) {
     stop(sprintf("Input schema does not contain the proper input. You provided %s inputs and %s were expected",length(inputSchema),length(formals(functionName))), call. = TRUE)
   }
   inputSchema <- publishPreprocess(inputSchema)
@@ -438,7 +457,7 @@ publishWebService <- function(functionName, serviceName, inputSchema, outputSche
   guid = gsub("-", "", uuid::UUIDgenerate(use.time=TRUE))
 
   # API call
-  RCurl::httpPUT(url = sprintf(publishURL, wkID, guid), # defined above
+  RCurl::httpPUT(url = sprintf(paste0(url,"/workspaces/%s/webservices/%s"), wkID, guid), # defined above
                  httpheader=c('Authorization' = paste('Bearer', authToken, sep=' '),
                               'Content-Type' = 'application/json',
                               'Accept' = 'application/json'),
@@ -481,32 +500,18 @@ publishWebService <- function(functionName, serviceName, inputSchema, outputSche
 #' addService <- updateWebService("add2", "add2", addService[[1]]$Id,
 #'  list("x"="int"), list("z"="int"), wsID, wsAuth, url)
 #'  
-#'  loadSettings()
-#'  addService <- updateWebService("add2", "add2", addService[[1]]$Id,
-#'  list("x"="int"), list("z"="int"))
+#' # If the workspace was configured through loadSettings()
+#' loadSettings()
+#' addService <- updateWebService("add2", "add2", addService[[1]]$Id, 
+#' list("x"="int"), list("z"="int"))
 #' }
 updateWebService <- function(functionName, serviceName, wsID, inputSchema, outputSchema, wkID, authToken, url=publishURL) {
   
   # If user has omitted the workspace id or the authorization token, use the values from the config file
-  eval(parse(text=expToEvaluate("'management.azureml.net/workspaces/%s/webservices/%s'")))
-  
-  # Check if user has omitted the workspace id or the authorization token
-  if(!hasArg('wkID') || !hasArg('authToken')){
-    # If user has loaded the workspace settings, use those for the missing parameters.
-    if(length(wsSettings)){
-      # Assign the workspace id value
-      wkID <- wsSettings[['wsId']]
-      # Assign the authorization token value
-      authToken <- wsSettings[['authToken']]
-      # Assign the url value 
-      region <- wsSettings[['region']]
-      if(region!='ussouthcentral')
-        url <- paste0("https://",region,".management.azureml.net/workspaces/%s/webservices/%s")
-    }
-  }
+  eval(parse(text=expToEvaluate("'management.azureml.net'")))
   
   # Make sure schema inputted matches function signature
-  if (length(formals(functionName)) != length(inputSchema)) {
+  if (length(formals(globalenv()[[functionName]])) != length(inputSchema)) {
     stop(sprintf("Input schema does not contain the proper input. You provided %s inputs and %s were expected",length(inputSchema),length(formals(functionName))), call. = TRUE)
   }
   inputSchema <- publishPreprocess(inputSchema)
@@ -554,7 +559,7 @@ updateWebService <- function(functionName, serviceName, wsID, inputSchema, outpu
   h$reset()
 
   # API call
-  RCurl::httpPUT(url = sprintf(publishURL, wkID, wsID),
+  RCurl::httpPUT(url = sprintf(paste0(url,"/workspaces/%s/webservices/%s"), wkID, wsID),
                  httpheader=c('Authorization' = paste('Bearer', authToken, sep=' '),
                               'Content-Type' = 'application/json',
                               'Accept' = 'application/json'),

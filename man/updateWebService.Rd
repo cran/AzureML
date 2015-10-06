@@ -34,11 +34,16 @@ Update a web service, i.e. change the underlying R code that the service will ru
 \dontrun{
 add1 <- function(x) { return(x+1) }
 addService <- publishWebService("add1", "add1",
- list("x"="int"), list("z"="int"), wsID, wsAuth)
+ list("x"="int"), list("z"="int"), wsID, wsAuth, url)
 
 add2 <- function(x) { return(x+2) }
 addService <- updateWebService("add2", "add2", addService[[1]]$Id,
- list("x"="int"), list("z"="int"), wsID, wsAuth)
+ list("x"="int"), list("z"="int"), wsID, wsAuth, url)
+
+# If the workspace was configured through loadSettings()
+loadSettings()
+addService <- updateWebService("add2", "add2", addService[[1]]$Id,
+list("x"="int"), list("z"="int"))
 }
 }
 \seealso{
