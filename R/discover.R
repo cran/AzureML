@@ -1,200 +1,166 @@
-# API URLs ----------------------------------------------------------------
+# Copyright (c) 2015-2016 Microsoft Corporation
+# All rights reserved.
+#   
+# The MIT License (MIT)
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#   
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
-prodURL = "https://management-tm.azureml.net"
 
-# Functions ---------------------------------------------------------------
-
-#' Abstraction for making GET requests.
+#' Helper function to extract information from a help page URL
 #'
-#' Framework for making GET requests to the Azure management APIs.
+#' Given a Microsoft Azure Machine Learning web service endpoint, extracts the endpoint ID and the workspace ID
 #'
-#' @param tUrl the API URL
-#' @param authToken the authentication token
+#' @param url the URL of a help page
+#' @return a vector containing the workspace ID, webservices ID and endpoint ID
 #'
-#' @return the response as a named list
-#'
-#' @family discovery functions
 #' @keywords internal
-getFramework <- function(tUrl, authToken) {
-  # Collectors for API response
-  h = RCurl::basicTextGatherer()
-  hdr = RCurl::basicTextGatherer()
-
-  # Accept SSL certificates issued by public Certificate Authorities
-  options(RCurlOptions = list(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl")))
-
-  # Craft request header and execute
-  auth = paste('Bearer', authToken, sep=' ')
-  h$reset()
-  RCurl::curlPerform(url = tUrl,
-              httpheader=c('Authorization' = auth, 'Content-Type' = "application/json", 'Accept' = "application/json"),
-              writefunction = h$update,
-              headerfunction = hdr$update,
-              verbose = TRUE)
-
-  # Error handle response not long enough (no webservices)
-  if (h$value() == "") {
-    return(-1)
-  }
-  response = rjson::fromJSON(h$value())
-  # Error handling
-  if ('error' %in% names(response)) {
-    stop(response$error)
-  }
-
-  return(response)
+getDetailsFromUrl <- function(url) {
+  ptn = ".*?/workspaces/([[:alnum:]]*)/webservices/([[:alnum:]]*)/endpoints/([[:alnum:]]*)/*.*$"
+  if(!grepl(ptn, url)) stop("Invalid url")
+  c(
+    gsub(ptn, "\\1", url),
+    gsub(ptn, "\\2", url),
+    gsub(ptn, "\\3", url)
+    
+  )
 }
 
 
-
-#' Get Available Web Services.
+#' Discover web service schema.
 #'
-#' Get a list of webservices available to the Microsoft Azure Machine Learning workspace specified by the Azure ML workspace ID.
+#' Discover the expected input to a web service specified by a web service ID ng the workspace ID and web service ID, information specific to the consumption functions
 #'
-#' @export
+#' @param helpURL URL of the help page of the web service
+#' @param scheme the URI scheme
+#' @param host optional parameter that defaults to ussouthcentral.services.azureml.net
+#' @param api_version AzureML API version
+#' 
+#' @return List containing the request URL of the webservice, column names of the data, sample input as well as the input schema
 #'
-#' @param wkID workspace ID
-#' @param authToken primary authorization token
-#' @param url the API url to make the call to, by default hits the Azure management API
-#'
-#' @return Returns a list of lists, where each web service is represented as a nested named list with the following fields:
-#'
-#' \itemize{
-#'   \item Id
-#'   \item Name
-#'   \item Description
-#'   \item CreationTime
-#'   \item WorkspaceId
-#'   \item DefaultEndpointName
-#' }
-#'
-#' @seealso \code{\link{publishWebService}} \code{\link{consumeLists}}
+#' @seealso \code{\link{publishWebService}} \code{\link{consume}} \code{\link{workspace}} \code{link{services}} \code{\link{endpoints}} \code{\link{endpointHelp}}
+#' 
 #' @family discovery functions
-#'
-#' @examples
-#' \dontrun{
-#' services = getWebServices("wsID", "authToken")
-#' serviceID = services[[1]]["Id"]
-#' }
-getWebServices <- function(wkID, authToken, url=prodURL) {
-  response = getFramework(sprintf(paste(url,"/workspaces/%s/webservices",sep=""), wkID), authToken)
-  if (!is.list(response)) {
-    stop("No web services found", call. = TRUE)
+#' @export
+discoverSchema <- function(helpURL, scheme = "https", 
+                           host = "ussouthcentral.services.azureml.net", 
+                           api_version = "2.0")
+{
+  workspaceId = getDetailsFromUrl(helpURL)[1]
+  endpointId = getDetailsFromUrl(helpURL)[3]
+  # Construct swagger document URL using parameters
+  # Use paste method without separator
+  uri = paste0(scheme,"://", host, 
+               "/workspaces/", workspaceId, 
+               "/services/", endpointId,
+               "/swagger.json")
+  
+  # parses the content and gets the swagger document
+  r <- try_fetch(uri, handle = new_handle())
+  swagger <- fromJSON(rawToChar(r$content))
+  
+  # Accesses the input schema in the swagger document
+  inputSchema <- swagger$definition$input1Item
+  
+  # Accesses the example in the swagger document and converts it to JSON
+  exampleJson <- toJSON(swagger$definitions$ExecutionRequest$example)
+  
+  # Accesses a single specific JSON object and formats it to be a request inputted as a list in R
+  inputExample <- as.list((fromJSON((exampleJson)))$Inputs$input1)
+  idx <- sapply(inputExample, class, USE.NAMES = FALSE) == "character"
+  inputExample[idx] <- "Please input valid String"
+  
+  # Accesses the names of the columns in the example
+  # and stores it in a list of column names
+#   columnNames <- vector("list", length = length(inputExample))
+#   columnNames <- list()
+#   for(i in seq_along(inputExample)) {
+#     columnNames[[i]] = names(inputExample)[i]
+#   }
+  columnNames <- lapply(seq_along(inputExample), function(i)names(inputExample[i]))
+
+    # Uses multiple nested loops to access the various paths in the 
+  # swagger document and find the execution path
+  foundExecPath = FALSE
+  pathNo = 0
+  execPathNo = -1
+  for(execPath in swagger$paths) {
+    pathNo = pathNo + 1
+    for(operationpath in execPath) {
+      for(operation in operationpath) {
+        # Goes through the characteristcs in every operation e.g. operationId
+        for(charac in operation) {
+          # Finds the path in which the 
+          # operationId (characteristic of the path) == execute 
+          # and sets the execution path number
+          if(charac[1] == "execute")
+          {
+            #Sets found execution path to true
+            foundExecPath = TRUE
+            execPathNo = pathNo
+            break
+          }
+        }
+      }
+    }
   }
-  return(response)
-}
-
-
-
-#' Get Web Service Details.
-#'
-#' Get detailed information about a specific Microsoft Azure Machine Learning web service specified by the Azure ML web service ID.
-#'
-#' @export
-#'
-#' @inheritParams getWebServices
-#' @param wsID the web service ID
-#'
-#' @return Returns a list with the following fields:
-#'
-#' \itemize{
-#'   \item Id
-#'   \item Name
-#'   \item Description
-#'   \item CreationTime
-#'   \item WorkspaceId
-#'   \item DefaultEndpointName
-#' }
-#'
-#' @seealso \code{\link{publishWebService}} \code{\link{consumeLists}}
-#' @family discovery functions
-getWSDetails <- function(wkID, authToken, wsID, url=prodURL) {
-  return(getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s", sep=""), wkID, wsID), authToken))
-}
-
-
-
-#' Get Web Service Endpoints.
-#'
-#' Get the API endpoints that belong to a Microsoft Azure Machine Learning web service.
-#'
-#' @export
-#'
-#' @inheritParams getWSDetails
-#'
-#' @return Returns a list of lists, where each endpoint is represented
-#' as a nested named list with the following fields:
-#'
-#' \itemize{
-#'  \item Name
-#'  \item Description
-#'  \item CreationTime
-#'  \item WorkspaceId
-#'  \item WebServiceId
-#'  \item HelpLocation
-#'  \item PrimaryKey
-#'  \item SecondaryKey
-#'  \item ApiLocation
-#'  \item Version
-#'  \item MaxConcurrentCalls
-#'  \item DiagnosticsTraceLevel
-#'  \item ThrottleLevel
-#'  }
-#'
-#' @seealso \code{\link{publishWebService}} \code{\link{consumeLists}}
-#' @family discovery functions
-#'
-#' @examples
-#' \dontrun{
-#' endpoints <- getEndpoints("wkId", "authToken", "wsID")
-#' helpURL <- endpoints[[1]]$HelpLocation
-#' pKey <- endpoints[[1]]$PrimaryKey
-#' apiURL <- endpoints[[1]]$ApiLocation
-#' }
-getEndpoints <- function(wkID, authToken, wsID, url=prodURL) {
-  response <- getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints", sep=""), wkID, wsID), authToken)
-  # for convenience because by default the repsonse doesn't include the full API location
-  for (i in 1:length(response)) {
-    response[[i]]$ApiLocation <- paste(response[[i]]$ApiLocation, "/execute?api-version=2.0&details=true&format=swagger",sep="")
+  
+  # Stores the execution path
+  executePath <- if(foundExecPath) names(swagger$paths)[[execPathNo]] 
+  else "Path not found"
+  
+  # Constructs the request URL with the parameters as well as execution path found. 
+  # The separator is set to an empty string
+  requestUrl <- paste0(scheme,"://", host, 
+                       "/workspaces/", workspaceId, 
+                       "/services/", endpointId, 
+                       executePath)
+  
+  # Access the HTTP method type e.g. GET/ POST and constructs an example request
+  httpMethod <- toupper(names(swagger$paths[[2]]))
+  httpRequest <- paste(httpMethod,requestUrl)
+  
+  # Warns user of characters and urges them to enter valid strings for them
+  firstWarning = TRUE
+  for(i in 1:length(inputExample)) {
+    if(is.character(inputExample[[i]])) {
+      if(firstWarning) {
+        msg <- paste("The sample input does not contain sample values for characters.",
+                     "Please input valid strings for these fields:", 
+                     sep = "\n")
+        message(msg)
+      }
+      message(" - ", names(inputExample)[[i]])
+      firstWarning = FALSE
+    }
   }
-  return(response)
+  
+  #Returns what was discovered in the form of a list
+  z <- list(requestUrl = requestUrl, 
+            columnNames = columnNames, 
+            sampleInput = inputExample, 
+            inputSchema = inputSchema
+  )
+  class(z) <- "discoverSchema"
+  z
 }
 
-
-
-#' Get Endpoint Details.
-#'
-#' Get detailed information about a specific endpoint for a web service specified by the Azure ML web service ID and endpoint name.
-#'
 #' @export
-#'
-#' @inheritParams getWSDetails
-#' @param epName endpoint name, e.g. "default"
-#'
-#' @return Returns a list with the following fields:
-#'
-#' \itemize{
-#'  \item Name
-#'  \item Description
-#'  \item CreationTime
-#'  \item WorkspaceId
-#'  \item WebServiceId
-#'  \item HelpLocation
-#'  \item PrimaryKey
-#'  \item SecondaryKey
-#'  \item ApiLocation
-#'  \item Version
-#'  \item MaxConcurrentCalls
-#'  \item DiagnosticsTraceLevel
-#'  \item ThrottleLevel
-#'  }
-#'
-#' @seealso \code{\link{publishWebService}} \code{\link{consumeLists}}
-#' @family discovery functions
-getEPDetails <- function(wkID, authToken, wsID, epName, url=prodURL) {
-  sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints/%s", sep=""), wkID, wsID, epName)
-  endpoint <- getFramework(sprintf(paste(url, "/workspaces/%s/webservices/%s/endpoints/%s", sep=""), wkID, wsID, epName), authToken)
-  # for convenience because by default the repsonse doesn't include the full API location
-  endpoint$ApiLocation <- paste(endpoint$ApiLocation, "/execute?api-version=2.0&details=true&format=swagger",sep="")
-  return(endpoint)
+print.discoverSchema <- function(x, ...){
+  str(x, ...)
+  invisible()
 }
