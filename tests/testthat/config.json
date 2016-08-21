@@ -1,7 +1,8 @@
-{
-"workspace_id": ["dd01c7e4a424432c9a9f83142d5cfec4"],
-"authorization_token": ["eab00da0e3d442ca8dbf7e4713d3a945"],
-"exp_id" : ["dd01c7e4a424432c9a9f83142d5cfec4.f-id.d2f351dd4cec4c06a4592ac83f7af55a"],
-"node_id" : ["2a472ae1-ecb1-4f40-ae4e-cd3cecb1003f-268"]
-} 
-
+{"workspace":{
+"id"                  : "dd01c7e4a424432c9a9f83142d5cfec4",
+"authorization_token" : "eab00da0e3d442ca8dbf7e4713d3a945",
+"api_endpoint"        : "Add your api_endpoint here",
+"management_endpoint" : "Add your management_endpoint here",
+"exp_id"              : "dd01c7e4a424432c9a9f83142d5cfec4.f-id.d2f351dd4cec4c06a4592ac83f7af55a",
+"node_id"             : "2a472ae1-ecb1-4f40-ae4e-cd3cecb1003f-268"
+}}
