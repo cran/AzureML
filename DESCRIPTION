@@ -5,10 +5,11 @@ Title: Interface with Azure Machine Learning Datasets, Experiments and
 Description: Functions and datasets to support Azure Machine Learning. This
     allows you to interact with datasets, as well as publish and consume R functions
     as API services.
-Version: 0.2.13
-Date: 2016-08-19
+Version: 0.2.14
+Date: 2017-10-21
 Authors@R: c(
-      person("Andrie", "de Vries", role=c("aut", "cre"), email="adevries@microsoft.com"),
+      person("Rich", "Calaway", role=c("cre"), email="richcala@microsoft.com"),
+      person("Andrie", "de Vries", role=c("aut"), email="apdevries@gmail.com"),
       person(family="Microsoft Corporation", role="cph"),
       person(family="Revolution Analytics", role="cph", comment="Code adapted from the foreach package")
     )
@@ -22,13 +23,14 @@ SystemRequirements: Requires external zip utility, available in path.
         On windows, it's sufficient to install RTools.
 Imports: jsonlite(>= 0.9.16), curl(>= 0.8), foreign, codetools,
         base64enc, miniCRAN, uuid
-Suggests: testthat, knitr, rmarkdown, lme4, gbm, MASS
-RoxygenNote: 5.0.1
+Suggests: testthat, knitr, rmarkdown, lme4, gbm, MASS, mockery
+RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2016-08-21 10:45:07 UTC; adevries
-Author: Andrie de Vries [aut, cre],
+Packaged: 2017-10-21 03:07:49 UTC; adevries
+Author: Rich Calaway [cre],
+  Andrie de Vries [aut],
   Microsoft Corporation [cph],
   Revolution Analytics [cph] (Code adapted from the foreach package)
-Maintainer: Andrie de Vries <adevries@microsoft.com>
+Maintainer: Rich Calaway <richcala@microsoft.com>
 Repository: CRAN
-Date/Publication: 2016-08-21 14:03:03
+Date/Publication: 2017-10-23 18:14:00 UTC
