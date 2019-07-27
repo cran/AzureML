@@ -1,4 +1,4 @@
-b41ddc96a1a006df4dc9ab11300a3160 *DESCRIPTION
+b5ab24e08070745012fd29e1376e1f01 *DESCRIPTION
 0bba537ac484fd3bb84f9651bcd9941e *LICENSE
 a82769eb4f5d6f3004411c6992431a4d *NAMESPACE
 9a44ba58018b170b247b66c0ca662b71 *NEWS
@@ -20,10 +20,10 @@ eabf05b44ea65ca5f481a675299d433d *R/workspace.R
 fee92fdba958ab5bff0a4225af7b448f *R/wrapper.R
 458541dc2ac301145f7c9fd24ec002b6 *R/zzz.R
 da389e3a5c348fa04ae0a30f6cbc4943 *R/zzz_test_helpers.R
-f0376423cd69db8fe635e14672083909 *build/vignette.rds
+d88dd0207285672c4dfe4b153fabd695 *build/vignette.rds
 862fe15cdd27e5716345fab38eaa2924 *inst/COPYRIGHTS
 df5f67b8c2ff12ed35e848410e23c262 *inst/doc/getting_started.Rmd
-7e88d4358c6c7cf1d204b37dc2f0e9d0 *inst/doc/getting_started.html
+e987cce4f9fdef747ce9cc705b9e5b8b *inst/doc/getting_started.html
 0ad0679e648cb08c2cabd9439f0d429d *inst/examples/example_datasets.R
 b9573a61c5bb8919a767e11afbd96039 *inst/examples/example_download.R
 d94274be1166cfeb4dffd50735dee6f1 *inst/examples/example_experiments.R
@@ -57,7 +57,6 @@ db3e5015591c5a6005e383df6affbb91 *man/read.AzureML.config.Rd
 799234bc2db82b5e11e5951bf1f75e46 *man/upload.dataset.Rd
 6d5fa8b3834107f9f9297e8006622dee *man/workspace.Rd
 a50c8fee8055815b90c386084e72598f *tests/testthat.R
-0993189f50dfc8b56083c4761c3ad0a4 *tests/testthat/config.json
 cd65be6bebd8ff2c872422e996640664 *tests/testthat/test-1-workspace-no-config.R
 8fd0000486837e3e3944ebe4f0a94931 *tests/testthat/test-1-workspace.R
 39e3e6200f424b85bf978741b2c3c137 *tests/testthat/test-2-datasets-upload-download-delete.R
